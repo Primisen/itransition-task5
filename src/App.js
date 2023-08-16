@@ -2,17 +2,28 @@ import logo from './logo.svg';
 import './App.css';
 import {Button} from "react-bootstrap";
 import {useEffect, useState} from "react";
-import {faker} from "@faker-js/faker";
+import {en, en_AU, Faker, faker, sv, uk} from "@faker-js/faker";
 
 function App() {
 
+    const [name, setName] = useState("");
+
+    let faker = new Faker({
+        locale: [en],
+    });
+
     function updateLanguage(localization) {
-        console.log(localization);
+        setName(createUser(localization));
     }
 
-    // useEffect(() => {
-    //     updateLanguage("en");
-    // }, []);
+    function createUser(localization) {
+        faker = new Faker({
+            locale: [localization],
+        });
+        return {
+            name: faker.person.firstName(),
+        }.name.toString();
+    }
 
     return (
         <div className="App">
@@ -20,19 +31,19 @@ function App() {
                 <div className="Localization">
                     <Button
                         onClick={() => {
-                            updateLanguage("en")
+                            updateLanguage(en)
                         }}>
                         EN
                     </Button>
                     <Button
                         onClick={() => {
-                            updateLanguage("sv")
+                            updateLanguage(sv)
                         }}>
                         SV
                     </Button>
                     <Button
                         onClick={() => {
-                            updateLanguage("uk")
+                            updateLanguage(uk)
                         }}>
                         UK
                     </Button>
@@ -40,6 +51,7 @@ function App() {
             </header>
 
             <div>
+                {name}
             </div>
         </div>
     );
