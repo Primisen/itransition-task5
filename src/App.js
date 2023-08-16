@@ -1,34 +1,38 @@
 import './App.css';
-import {Button, Table} from "react-bootstrap";
+import {Button, Form, Table} from "react-bootstrap";
 import {useState} from "react";
-import {de, en, Faker, uk} from "@faker-js/faker";
-
+import {de, en, Faker, RandomModule, uk} from "@faker-js/faker";
 import "bootstrap/dist/css/bootstrap.min.css"
 
 function App() {
 
     const defaultNumberOfUsers = 20;
-    const [users, setUsers] = useState([]);
-    const [uiLocalization, setUiLocalization] = useState({});
-    let counter = 1;
-
-    let faker = new Faker({
-        locale: [en],
+    const [seed, setSeed] = useState(2);
+    const [localization, setLocalization] = useState(en);
+    const [faker, setFaker] = useState(new Faker({
+        locale: [localization],
+    }));
+    const [users, setUsers] = useState(createUsers());
+    const [uiLocalization, setUiLocalization] = useState({
+        fullName: "Full name",
+        address: "Address",
+        phoneNumber: "Phone number",
+        enterSeedLabel: "Enter seed",
+        enterButton: "Enter",
     });
 
-    function updateLanguage(localization) {
+    let counter = 1;
 
-        faker = new Faker({
+    function updateLanguage(localization) {
+        setFaker(new Faker({
             locale: [localization],
-        });
-        let na = (faker.helpers.multiple(create, {
-            count: defaultNumberOfUsers,
         }))
-        setUsers(na);
-        localizeUI(localization);
+        setLocalization(localization);
+        setUsers(createUsers);//
+        localizeUI(localization);//
     }
 
-    function create() {
+    function createUser() {
         return {
             id: faker.string.uuid(),
             fullName: faker.person.fullName(),
@@ -39,24 +43,54 @@ function App() {
         }
     }
 
-    function localizeUI(localization) {
+    function createUsers(){
+        faker.seed(Number(seed));
+        return  (faker.helpers.multiple(createUser, {
+            count: defaultNumberOfUsers,
+        }))
+    }
+
+    function regenerateUsers(event) {//
+        event.preventDefault();
+         setUsers(createUsers());
+    }
+
+    function regenerateUsersByRandom(event) {//
+        event.preventDefault();
+        setSeed(randomNumberInRange(1, 1000));
+        console.log(seed);
+        setUsers(createUsers());
+    }
+
+    function randomNumberInRange(min, max) {
+        // 👇️ get number between min (inclusive) and max (inclusive)
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function localizeUI(localization) {//can separate
         if (localization === en) {
             setUiLocalization({
                 fullName: "Full name",
                 address: "Address",
                 phoneNumber: "Phone number",
+                enterSeedLabel: "Enter seed",
+                enterButton: "Enter",
             });
         } else if (localization === de) {
             setUiLocalization({
                 fullName: "Vollständiger Name",
                 address: "Adresse",
                 phoneNumber: "Telefonnummer",
+                enterSeedLabel: "Seed einfügen",
+                enterButton: "Eingeben",
             });
         } else if (localization === uk) {
             setUiLocalization({
                 fullName: "Повне ім'я",
                 address: "Адреса",
                 phoneNumber: "Номер телефону",
+                enterSeedLabel: "Введіть seed",
+                enterButton: "Введіть",
             });
         }
     }
@@ -85,6 +119,34 @@ function App() {
                     </Button>
                 </div>
             </header>
+
+            <Form >
+                <Form.Group controlId="formBasicEmail">
+                    <Form.Label>{uiLocalization.enterSeedLabel}</Form.Label>
+                    <Form.Control
+                        type="number"
+                        name="seed"
+                        onChange={(e) => setSeed(e.target.value)}
+                        placeholder={uiLocalization.enterSeedLabel}
+                    />
+                </Form.Group>
+
+                <Button
+                    variant="primary"
+                    type="submit"
+                    onClick={regenerateUsers}
+                  >
+                    {uiLocalization.enterButton}
+                </Button>
+
+                <Button
+                    variant="primary"
+                    type="submit"
+                    onClick={regenerateUsersByRandom}
+                >
+                    Random
+                </Button>
+            </Form>
 
             <Table Users>
                 <thead>
