@@ -1,28 +1,64 @@
-import logo from './logo.svg';
 import './App.css';
-import {Button} from "react-bootstrap";
-import {useEffect, useState} from "react";
-import {en, en_AU, Faker, faker, sv, uk} from "@faker-js/faker";
+import {Button, Table} from "react-bootstrap";
+import {useState} from "react";
+import {de, en, Faker, uk} from "@faker-js/faker";
+
+import "bootstrap/dist/css/bootstrap.min.css"
 
 function App() {
 
-    const [name, setName] = useState("");
+    const defaultNumberOfUsers = 20;
+    const [users, setUsers] = useState([]);
+    const [uiLocalization, setUiLocalization] = useState({});
+    let counter = 1;
 
     let faker = new Faker({
         locale: [en],
     });
 
     function updateLanguage(localization) {
-        setName(createUser(localization));
-    }
 
-    function createUser(localization) {
         faker = new Faker({
             locale: [localization],
         });
+        let na = (faker.helpers.multiple(create, {
+            count: defaultNumberOfUsers,
+        }))
+        setUsers(na);
+        localizeUI(localization);
+    }
+
+    function create() {
         return {
-            name: faker.person.firstName(),
-        }.name.toString();
+            id: faker.string.uuid(),
+            fullName: faker.person.fullName(),
+            city: faker.location.city(),
+            street: faker.location.street(),
+            buildingNumber: faker.location.buildingNumber(),
+            phoneNumber: faker.phone.number(),
+        }
+    }
+
+    function localizeUI(localization) {
+        if (localization === en) {
+            setUiLocalization({
+                fullName: "Full name",
+                address: "Address",
+                phoneNumber: "Phone number",
+            });
+        } else if (localization === de) {
+            setUiLocalization({
+                fullName: "Vollständiger Name",
+                address: "Adresse",
+                phoneNumber: "Telefonnummer",
+            });
+        } else if (localization === uk) {
+            setUiLocalization({
+                fullName: "Повне ім'я",
+                address: "Адреса",
+                phoneNumber: "Номер телефону",
+            });
+        }
     }
 
     return (
@@ -37,9 +73,9 @@ function App() {
                     </Button>
                     <Button
                         onClick={() => {
-                            updateLanguage(sv)
+                            updateLanguage(de)
                         }}>
-                        SV
+                        DE
                     </Button>
                     <Button
                         onClick={() => {
@@ -50,9 +86,31 @@ function App() {
                 </div>
             </header>
 
-            <div>
-                {name}
-            </div>
+            <Table Users>
+                <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Id</th>
+                    <th>{uiLocalization.fullName}</th>
+                    <th>{uiLocalization.address}</th>
+                    <th>{uiLocalization.phoneNumber}</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                {users?.map((user) => {
+                    return (
+                        <tr>
+                            <th>{counter++}</th>
+                            <td>{user.id}</td>
+                            <td>{user.fullName}</td>
+                            <td>{user.city}, {user.street}, {user.buildingNumber}</td>
+                            <td>{user.phoneNumber}</td>
+                        </tr>
+                    );
+                })}
+                </tbody>
+            </Table>
         </div>
     );
 }
