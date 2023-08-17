@@ -1,13 +1,14 @@
 import './App.css';
-import {Button, Form, Table} from "react-bootstrap";
+import {Button, Form, Stack, Table} from "react-bootstrap";
 import {useState} from "react";
 import {de, en, Faker, RandomModule, uk} from "@faker-js/faker";
 import "bootstrap/dist/css/bootstrap.min.css"
+import 'toolcool-range-slider';
 
 function App() {
 
     const defaultNumberOfUsers = 20;
-    const [seed, setSeed] = useState(2);
+    const [seed, setSeed] = useState(11);
     const [localization, setLocalization] = useState(en);
     const [faker, setFaker] = useState(new Faker({
         locale: [localization],
@@ -20,6 +21,12 @@ function App() {
         enterSeedLabel: "Enter seed",
         enterButton: "Enter",
     });
+
+    const [mistakesNumber, setMistakesNumber] = useState(71);
+
+    const typesNumberMistakes = 3;//lol
+    const [mistakeSeed, setMistakeSeed] = useState(0);
+
 
     let counter = 1;
 
@@ -34,7 +41,7 @@ function App() {
 
     function createUser() {
         return {
-            id: faker.string.uuid(),
+            email: faker.internet.email(),
             fullName: faker.person.fullName(),
             city: faker.location.city(),
             street: faker.location.street(),
@@ -43,23 +50,26 @@ function App() {
         }
     }
 
-    function createUsers(){
+    function createUsers() {
         faker.seed(Number(seed));
-        return  (faker.helpers.multiple(createUser, {
+        return (faker.helpers.multiple(createUser, {
             count: defaultNumberOfUsers,
         }))
     }
 
     function regenerateUsers(event) {//
         event.preventDefault();
-         setUsers(createUsers());
+        setUsers(createUsers());
     }
 
     function regenerateUsersByRandom(event) {//
         event.preventDefault();
-        setSeed(randomNumberInRange(1, 1000));
+        setSeed(randomNumberInRange(1, 10));
         console.log(seed);
         setUsers(createUsers());
+
+        // chooseMistake();
+        makeMistakes();
     }
 
     function randomNumberInRange(min, max) {
@@ -95,6 +105,122 @@ function App() {
         }
     }
 
+    function generateMissingCharacterMistake(string, position) {// rename to -> delete character
+        return string.replace(string.charAt(position), "");
+    }
+
+    function generateExtraCharacterMistake(string, position) {
+        return string.slice(0, position)
+            + string.charAt(0) + string.slice(position);
+    }
+
+    function generateSwappedCharacterMistake(string, position) {
+        const a = string.charAt(position);
+        const b = string.charAt(position + 1);
+        return string.substring(0, position) + b + a;
+    }
+
+    function chooseMistake(string, position) {
+        if (seed * mistakesNumber % typesNumberMistakes === 0) {//copy code
+            return generateMissingCharacterMistake(string, position);
+        } else if (seed * mistakesNumber % typesNumberMistakes === 1) {
+            return generateExtraCharacterMistake(string, position);
+        } else if (seed * mistakesNumber % typesNumberMistakes === 1) {
+            return generateSwappedCharacterMistake(string, position);
+        }
+    }
+
+    function getPosition(string) {
+        console.log("seed: " + seed);
+        const position= seed * mistakesNumber % (string.length - 1);//when seed 0 then it works strange
+        console.log("position"+ position);
+        return position;
+    }
+
+    function makeMistakes() {
+        let newUsers = [];
+
+        for (let i = 0; i < users.length; i++) {
+
+            let newUser = users[i];
+            const originalSeed = seed;
+
+            for (let j = 0; j < mistakesNumber; j++) {
+
+                console.log("am i here?");
+
+                let email = users[i].email;
+                let position = getPosition(email);
+                email = chooseMistake(email, position);
+                // users[i].email = email;
+
+                let fullName = users[i].fullName;
+                position = getPosition(fullName);
+                fullName = chooseMistake(fullName, position);
+                // users[i].fullName = fullName;
+                console.log("full name: " + fullName);
+
+                let city = users[i].city;
+                position = getPosition(city);
+                city = chooseMistake(city, position);
+                // users[i].city = city;
+
+                let street = users[i].street;
+                position = getPosition(street);
+                street = chooseMistake(street, position);
+                // users[i].street = street;
+
+
+                let buildingNumber = users[i].buildingNumber;
+                position = getPosition(buildingNumber);
+                buildingNumber = chooseMistake(buildingNumber, position);
+                // users[i].buildingNumber = buildingNumber;
+
+
+                let phoneNumber = users[i].phoneNumber;
+                position = getPosition(phoneNumber);
+                phoneNumber = chooseMistake(phoneNumber, position);
+                // users[i].phoneNumber = phoneNumber;
+
+                 newUser = {
+                    email: email,
+                    fullName: fullName,
+                    city: city,
+                    street: street,
+                    buildingNumber: buildingNumber,
+                    phoneNumber: phoneNumber
+                };
+
+
+                setSeed(seed * 32 /14);
+
+                // email: faker.internet.email(),
+                //     fullName: faker.person.fullName(),
+                //     city: faker.location.city(),
+                //     street: faker.location.street(),
+                //     buildingNumber: faker.location.buildingNumber(),
+                //     phoneNumber: faker.phone.number(),
+
+
+                // let mistake = chooseMistake();
+                // user[i].
+                // let userAsString = generateStingFromUser(users[i]);
+                // let position = getPosition(userAsString);
+                // mistake(userAsString. position);
+            }
+
+            newUsers.push(newUser);
+            setSeed(originalSeed);
+        }
+
+        setUsers(newUsers);
+    }
+
+    function generateStringFromUser(user) {
+
+
+    }
+
     return (
         <div className="App">
             <header>
@@ -120,7 +246,12 @@ function App() {
                 </div>
             </header>
 
-            <Form >
+            <div className="numberOfMistakes">
+                <toolcool-range-slider min="10" max="50"></toolcool-range-slider>
+            </div>
+
+
+            <Form>
                 <Form.Group controlId="formBasicEmail">
                     <Form.Label>{uiLocalization.enterSeedLabel}</Form.Label>
                     <Form.Control
@@ -135,7 +266,7 @@ function App() {
                     variant="primary"
                     type="submit"
                     onClick={regenerateUsers}
-                  >
+                >
                     {uiLocalization.enterButton}
                 </Button>
 
@@ -152,7 +283,7 @@ function App() {
                 <thead>
                 <tr>
                     <th>№</th>
-                    <th>Id</th>
+                    <th>Email</th>
                     <th>{uiLocalization.fullName}</th>
                     <th>{uiLocalization.address}</th>
                     <th>{uiLocalization.phoneNumber}</th>
@@ -164,7 +295,7 @@ function App() {
                     return (
                         <tr>
                             <th>{counter++}</th>
-                            <td>{user.id}</td>
+                            <td>{user.email}</td>
                             <td>{user.fullName}</td>
                             <td>{user.city}, {user.street}, {user.buildingNumber}</td>
                             <td>{user.phoneNumber}</td>
