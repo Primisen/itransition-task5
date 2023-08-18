@@ -7,8 +7,9 @@ import 'toolcool-range-slider';
 
 function App() {
 
+    let seed = 23;
+
     const defaultNumberOfUsers = 20;
-    const [seed, setSeed] = useState(11);
     const [localization, setLocalization] = useState(en);
     const [faker, setFaker] = useState(new Faker({
         locale: [localization],
@@ -22,11 +23,16 @@ function App() {
         enterButton: "Enter",
     });
 
-    const [mistakesNumber, setMistakesNumber] = useState(71);
 
-    const typesNumberMistakes = 3;//lol
-    const [mistakeSeed, setMistakeSeed] = useState(0);
+    //sync and async seed
 
+    function setSeed (newSeed) {
+        seed = newSeed;
+    }
+
+    const [mistakesNumber, setMistakesNumber] = useState(1000);//with big number exist bugs
+
+    const MISTAKES_TYPES_NUMBER = 3;
 
     let counter = 1;
 
@@ -65,7 +71,7 @@ function App() {
     function regenerateUsersByRandom(event) {//
         event.preventDefault();
         setSeed(randomNumberInRange(1, 10));
-        console.log(seed);
+        // console.log(seed);
         setUsers(createUsers());
 
         // chooseMistake();
@@ -121,19 +127,20 @@ function App() {
     }
 
     function chooseMistake(string, position) {
-        if (seed * mistakesNumber % typesNumberMistakes === 0) {//copy code
+        if (seed * string.length % MISTAKES_TYPES_NUMBER === 0) {//copy code
+            console.log("mistake 1");
             return generateMissingCharacterMistake(string, position);
-        } else if (seed * mistakesNumber % typesNumberMistakes === 1) {
+        } else if (seed * string.length % MISTAKES_TYPES_NUMBER === 1) {
+            console.log("mistake 2");
             return generateExtraCharacterMistake(string, position);
-        } else if (seed * mistakesNumber % typesNumberMistakes === 1) {
+        } else if (seed * string.length % MISTAKES_TYPES_NUMBER === 2) {
+            console.log("mistake 3");
             return generateSwappedCharacterMistake(string, position);
         }
     }
 
     function getPosition(string) {
-        console.log("seed: " + seed);
-        const position= seed * mistakesNumber % (string.length - 1);//when seed 0 then it works strange
-        console.log("position"+ position);
+        const position = seed * mistakesNumber % (string.length - 1);//when seed 0 then it works strange
         return position;
     }
 
@@ -147,7 +154,15 @@ function App() {
 
             for (let j = 0; j < mistakesNumber; j++) {
 
-                console.log("am i here?");
+                // console.log("VALUE: " + seed * 11 % 9);
+                let value = Math.ceil((seed *  1103515245 + 12345)  / 65536 % 32768);
+                console.log("VALUE: " + value);
+                // setSeed(value);
+                seed = value
+
+
+                console.log("seed: " + seed);
+
 
                 let email = users[i].email;
                 let position = getPosition(email);
@@ -158,7 +173,6 @@ function App() {
                 position = getPosition(fullName);
                 fullName = chooseMistake(fullName, position);
                 // users[i].fullName = fullName;
-                console.log("full name: " + fullName);
 
                 let city = users[i].city;
                 position = getPosition(city);
@@ -182,7 +196,7 @@ function App() {
                 phoneNumber = chooseMistake(phoneNumber, position);
                 // users[i].phoneNumber = phoneNumber;
 
-                 newUser = {
+                newUser = {
                     email: email,
                     fullName: fullName,
                     city: city,
@@ -190,27 +204,11 @@ function App() {
                     buildingNumber: buildingNumber,
                     phoneNumber: phoneNumber
                 };
-
-
-                setSeed(seed * 32 /14);
-
-                // email: faker.internet.email(),
-                //     fullName: faker.person.fullName(),
-                //     city: faker.location.city(),
-                //     street: faker.location.street(),
-                //     buildingNumber: faker.location.buildingNumber(),
-                //     phoneNumber: faker.phone.number(),
-
-
-                // let mistake = chooseMistake();
-                // user[i].
-                // let userAsString = generateStingFromUser(users[i]);
-                // let position = getPosition(userAsString);
-                // mistake(userAsString. position);
             }
 
             newUsers.push(newUser);
-            setSeed(originalSeed);
+            // setSeed(originalSeed);
+            seed = originalSeed
         }
 
         setUsers(newUsers);
