@@ -4,46 +4,36 @@ import {useState} from "react";
 import {de, en, Faker, RandomModule, uk} from "@faker-js/faker";
 import "bootstrap/dist/css/bootstrap.min.css"
 import 'toolcool-range-slider';
+import LanguageChooser from "./components/LanguageChooser";
+import {useTranslation} from "react-i18next";
 
 function App() {
+
+    const {t} = useTranslation();
 
     let seed = 23;
 
     const defaultNumberOfUsers = 20;
-    const [localization, setLocalization] = useState(en);
     const [faker, setFaker] = useState(new Faker({
-        locale: [localization],
+        locale: [en],//
     }));
     const [users, setUsers] = useState(createUsers());
-    const [uiLocalization, setUiLocalization] = useState({
-        fullName: "Full name",
-        address: "Address",
-        phoneNumber: "Phone number",
-        enterSeedLabel: "Enter seed",
-        enterButton: "Enter",
-    });
 
+    // function changeLanguage(language){// rename
+    //     setFaker(new Faker({
+    //         locale: [language],
+    //     }))
+    // }
 
     //sync and async seed
 
-    function setSeed (newSeed) {
+    function setSeed(newSeed) {
         seed = newSeed;
     }
 
     const [mistakesNumber, setMistakesNumber] = useState(1000);//with big number exist bugs
 
     const MISTAKES_TYPES_NUMBER = 3;
-
-    let counter = 1;
-
-    function updateLanguage(localization) {
-        setFaker(new Faker({
-            locale: [localization],
-        }))
-        setLocalization(localization);
-        setUsers(createUsers);//
-        localizeUI(localization);//
-    }
 
     function createUser() {
         return {
@@ -83,34 +73,6 @@ function App() {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    function localizeUI(localization) {//can separate
-        if (localization === en) {
-            setUiLocalization({
-                fullName: "Full name",
-                address: "Address",
-                phoneNumber: "Phone number",
-                enterSeedLabel: "Enter seed",
-                enterButton: "Enter",
-            });
-        } else if (localization === de) {
-            setUiLocalization({
-                fullName: "Vollständiger Name",
-                address: "Adresse",
-                phoneNumber: "Telefonnummer",
-                enterSeedLabel: "Seed einfügen",
-                enterButton: "Eingeben",
-            });
-        } else if (localization === uk) {
-            setUiLocalization({
-                fullName: "Повне ім'я",
-                address: "Адреса",
-                phoneNumber: "Номер телефону",
-                enterSeedLabel: "Введіть seed",
-                enterButton: "Введіть",
-            });
-        }
-    }
-
     function generateMissingCharacterMistake(string, position) {// rename to -> delete character
         return string.replace(string.charAt(position), "");
     }
@@ -128,13 +90,10 @@ function App() {
 
     function chooseMistake(string, position) {
         if (seed * string.length % MISTAKES_TYPES_NUMBER === 0) {//copy code
-            console.log("mistake 1");
             return generateMissingCharacterMistake(string, position);
         } else if (seed * string.length % MISTAKES_TYPES_NUMBER === 1) {
-            console.log("mistake 2");
             return generateExtraCharacterMistake(string, position);
         } else if (seed * string.length % MISTAKES_TYPES_NUMBER === 2) {
-            console.log("mistake 3");
             return generateSwappedCharacterMistake(string, position);
         }
     }
@@ -155,46 +114,32 @@ function App() {
             for (let j = 0; j < mistakesNumber; j++) {
 
                 // console.log("VALUE: " + seed * 11 % 9);
-                let value = Math.ceil((seed *  1103515245 + 12345)  / 65536 % 32768);
-                console.log("VALUE: " + value);
-                // setSeed(value);
+                let value = Math.ceil((seed * 1103515245 + 12345) / 65536 % 32768);
                 seed = value
-
-
-                console.log("seed: " + seed);
-
 
                 let email = users[i].email;
                 let position = getPosition(email);
                 email = chooseMistake(email, position);
-                // users[i].email = email;
 
                 let fullName = users[i].fullName;
                 position = getPosition(fullName);
                 fullName = chooseMistake(fullName, position);
-                // users[i].fullName = fullName;
 
                 let city = users[i].city;
                 position = getPosition(city);
                 city = chooseMistake(city, position);
-                // users[i].city = city;
 
                 let street = users[i].street;
                 position = getPosition(street);
                 street = chooseMistake(street, position);
-                // users[i].street = street;
-
 
                 let buildingNumber = users[i].buildingNumber;
                 position = getPosition(buildingNumber);
                 buildingNumber = chooseMistake(buildingNumber, position);
-                // users[i].buildingNumber = buildingNumber;
-
 
                 let phoneNumber = users[i].phoneNumber;
                 position = getPosition(phoneNumber);
                 phoneNumber = chooseMistake(phoneNumber, position);
-                // users[i].phoneNumber = phoneNumber;
 
                 newUser = {
                     email: email,
@@ -214,35 +159,21 @@ function App() {
         setUsers(newUsers);
     }
 
-    function generateStringFromUser(user) {
+    function changeFakerLocalization(language) {
+        if (language === "en") {
+            setFaker(new Faker({locale: [en]}))
+        } else if (language === "de") {
+            setFaker(new Faker({locale: [de]}))
+        } else if (language === "uk") {
+            setFaker(new Faker({locale: [uk]}))
+        }
 
-
+        setUsers(createUsers);
     }
 
     return (
         <div className="App">
-            <header>
-                <div className="Localization">
-                    <Button
-                        onClick={() => {
-                            updateLanguage(en)
-                        }}>
-                        EN
-                    </Button>
-                    <Button
-                        onClick={() => {
-                            updateLanguage(de)
-                        }}>
-                        DE
-                    </Button>
-                    <Button
-                        onClick={() => {
-                            updateLanguage(uk)
-                        }}>
-                        UK
-                    </Button>
-                </div>
-            </header>
+            <LanguageChooser localizeFaker={changeFakerLocalization}/>
 
             <div className="numberOfMistakes">
                 <toolcool-range-slider min="10" max="50"></toolcool-range-slider>
@@ -251,12 +182,12 @@ function App() {
 
             <Form>
                 <Form.Group controlId="formBasicEmail">
-                    <Form.Label>{uiLocalization.enterSeedLabel}</Form.Label>
+                    <Form.Label>{t("enterSeed")}</Form.Label>
                     <Form.Control
                         type="number"
                         name="seed"
                         onChange={(e) => setSeed(e.target.value)}
-                        placeholder={uiLocalization.enterSeedLabel}
+                        placeholder={t("enterSeed")}
                     />
                 </Form.Group>
 
@@ -265,7 +196,7 @@ function App() {
                     type="submit"
                     onClick={regenerateUsers}
                 >
-                    {uiLocalization.enterButton}
+                    {t("enter")}
                 </Button>
 
                 <Button
@@ -282,17 +213,17 @@ function App() {
                 <tr>
                     <th>№</th>
                     <th>Email</th>
-                    <th>{uiLocalization.fullName}</th>
-                    <th>{uiLocalization.address}</th>
-                    <th>{uiLocalization.phoneNumber}</th>
+                    <th>{t("fullName")}</th>
+                    <th>{t("address")}</th>
+                    <th>{t("phoneNumber")}</th>
                 </tr>
                 </thead>
 
                 <tbody>
-                {users?.map((user) => {
+                {users?.map((user, index) => {
                     return (
                         <tr>
-                            <th>{counter++}</th>
+                            <th>{index + 1}</th>
                             <td>{user.email}</td>
                             <td>{user.fullName}</td>
                             <td>{user.city}, {user.street}, {user.buildingNumber}</td>
